@@ -1,19 +1,13 @@
 [Tick 1] 🏕️ On the surface at (None, None): A crusade of Null Zealots has mobilized!
-[Tick 19] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 27] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 51] 🏕️ On the surface at (None, None): A crusade of Null Zealots has mobilized!
-[Tick 54] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 55] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 59] 🏕️ On the surface at (None, None): A crusade of Null Zealots has mobilized!
-[Tick 72] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 72] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 109] 🏕️ On the surface at (None, None): A crusade of Null Zealots has mobilized!
-[Tick 117] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 121] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 130] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 133] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 140] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 140] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 159] 🏕️ On the surface at (None, None): A crusade of Null Zealots has mobilized!
-[Tick 173] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
-[Tick 174] 🌪️ A localized spell-storm and reality-warping mutation struck the surface at (None, None): A wild Chaos Creature spawned on a Chaos Path!
+[Tick 1] 🏕️ On the surface at (29, -10): Eldermere is starving!
+[Tick 1] 🏕️ On the surface at (22, -3): Rivenshire is starving!
+[Tick 1] 🌊 In the abyssal depths at (65, 9): Stonewatch is starving!
+[Tick 1] 🌊 In the abyssal depths at (70, -1): Goldhaven is starving!
+[Tick 1] 🏕️ On the surface at (22, 17): Mistmoor is starving!
+[Tick 1] 🏕️ On the surface at (25, -9): Highvale is starving!
+[Tick 2] 🏕️ On the surface at (29, -10): Eldermere is starving!
+[Tick 2] 🏕️ On the surface at (22, -3): Rivenshire is starving!
+[Tick 2] 🌊 In the abyssal depths at (65, 9): Stonewatch is starving!
+[Tick 2] 🌊 In the abyssal depths at (70, -1): Goldhaven is starving!
+[Tick 2] 🏕️ On the surface at (22, 17): Mistmoor is starving!
+[Tick 2] 🏕️ On the surface at (25, -9): Highvale is starving!
