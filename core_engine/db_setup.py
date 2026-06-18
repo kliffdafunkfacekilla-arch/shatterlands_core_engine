@@ -16,7 +16,7 @@ def calculate_base_biome(elevation, temp, moisture):
     if elevation < 0.0:
         if elevation < -0.6: return 12 # Abyssal Trench
         if temp > 0.4: return 10 # Coral Reef
-        if temp < -0.4: return 11 # Arctic Ocean
+        if temp < -0.4: return 11 # Hydrothermal Vent
         return 9 # Kelp Forest / Open Ocean
 
     # Land Biomes

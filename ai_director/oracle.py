@@ -42,7 +42,7 @@ class ContextOracle:
             elif base_biome == 10:
                 biome_name = "Bioluminescent Reef"
             elif base_biome == 11:
-                biome_name = "Arctic Ocean"
+                biome_name = "Hydrothermal Vent"
             elif base_biome == 12:
                 biome_name = "Abyssal Trench"
 
