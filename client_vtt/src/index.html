@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Client Interface VTT</title>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: #1e1e1e; font-family: sans-serif; user-select: none; }
+        canvas { display: block; cursor: crosshair; }
+        #ui-layer { position: absolute; top: 10px; left: 10px; color: white; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="ui-layer">
+        <h2>Shatterlands VTT</h2>
+        <div id="status">Waiting for AI Director payload...</div>
+    </div>
+    <canvas id="vttCanvas"></canvas>
+
+    <script src="canvas_adapter.js"></script>
+    <script>
+        // Initialize the canvas adapter
+        const canvas = document.getElementById('vttCanvas');
+        const adapter = new VTTCanvasAdapter(canvas);
+
+        // Example mock payload to test rendering (will be replaced by real AI Director data)
+        const mockPayload = {
+            "coordinate": {"q": 0, "r": 0},
+            "ambient_chaos_energy": 120,
+            "temperature": 60,
+            "moisture": 80,
+            "depth_layer": "Sub-Surface/Abyssal",
+            "is_underwater": true,
+            "ocean_attributes": {
+                "underwater_biome": "Abyssal Trench",
+                "active_current_index": 2
+            },
+            "active_storms": [
+                {
+                    "type": "Chaos Storm",
+                    "energy": 500,
+                    "moisture": 100,
+                    "vorticity": 80,
+                    "is_chaos": true,
+                    "chaos_domain": "Void"
+                }
+            ],
+            "dynamic_environmental_effects": [
+                "Reality distortion from Void domain. Magic is highly volatile."
+            ]
+        };
+
+        // Render the payload
+        adapter.renderPayload(mockPayload);
+        document.getElementById('status').innerText = 'Rendering active payload.';
+    </script>
+</body>
+</html>
