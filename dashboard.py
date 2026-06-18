@@ -6,7 +6,7 @@ import json
 import time
 import math
 import plotly.graph_objects as go
-from engine import GlobalEngine
+from core_engine.engine import GlobalEngine
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")
 

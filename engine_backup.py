@@ -5,8 +5,8 @@ import heapq
 import random
 import math
 import json
-from codec import pack_micro_hex, unpack_micro_hex, RESOURCE_STATS
-from db_setup import generate_d20_nodes
+from core_engine.codec import pack_micro_hex, unpack_micro_hex, RESOURCE_STATS
+from core_engine.db_setup import generate_d20_nodes
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")
 MAP_SIZE = 100

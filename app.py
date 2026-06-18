@@ -2,8 +2,8 @@ import os
 import sqlite3
 import json
 from flask import Flask, jsonify, send_from_directory, request
-from engine import GlobalEngine
-from codec import unpack_micro_cluster
+from core_engine.engine import GlobalEngine
+from core_engine.codec import unpack_micro_cluster
 
 app = Flask(__name__, static_folder='static')
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")

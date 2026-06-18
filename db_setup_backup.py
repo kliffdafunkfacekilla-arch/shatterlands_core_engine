@@ -2,7 +2,7 @@
 import sqlite3
 import os
 import math
-from codec import pack_micro_hex
+from core_engine.codec import pack_micro_hex
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")
 

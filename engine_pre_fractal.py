@@ -3,7 +3,7 @@ import random
 import os
 import json
 import math
-from codec import unpack_micro_cluster, pack_micro_cluster
+from core_engine.codec import unpack_micro_cluster, pack_micro_cluster
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")
 
