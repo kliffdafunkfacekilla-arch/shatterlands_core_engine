@@ -1,0 +1,52 @@
+name: Shatterlands Zero-Intervention Pipeline
+
+on:
+  # Triggers when a Jules PR opens OR when a PR gets successfully merged
+  pull_request:
+    types: [opened, closed]
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # JOB 1: Automatically merge any PR created by the Jules workflow
+  auto_merge_jules:
+    if: github.event.action == 'opened' && contains(github.event.pull_request.head.ref, 'jules')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Auto-Approve and Merge PR
+        run: |
+          gh pr review ${{ github.event.pull_request.number }} --approve
+          gh pr merge ${{ github.event.pull_request.number }} --merge --auto --delete-branch
+
+  # JOB 2: Chain reaction that fires the next task the second a merge occurs
+  sequence_next_prompt:
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Narrative Chronicle Task
+        if: contains(github.event.pull_request.title, 'core_engine') || contains(github.event.pull_request.title, 'Initial commit')
+        uses: google-labs-code/jules-action@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: main
+          prompt: |
+            Task: Implement the Headless Narrative Chronicle System inside `taleweaver_chronicle/`.
+            Harvest your text formatting logic from TALEWEAVERS. Build event_parser.py to convert raw DB logs into prose, and history_ledger.py to append them to a timeline markdown file.
+
+      - name: Trigger AI GM Context Director Task
+        if: contains(github.event.pull_request.title, 'Narrative') || contains(github.event.pull_request.title, 'chronicle')
+        uses: google-labs-code/jules-action@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: main
+          prompt: |
+            Task: Implement the Automated GM Context Director inside `ai_director/`.
+            Harvest dynamic context maps from GMAI and DMAI. Build oracle.py to package player coordinates into an optimized JSON payload for external LLM parsing.
