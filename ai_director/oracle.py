@@ -44,7 +44,10 @@ class ContextOracle:
             elif base_biome == 11:
                 biome_name = "Arctic Ocean"
             elif base_biome == 12:
-                biome_name = "Abyssal Trench"
+                if p2_temp > 178:
+                    biome_name = "Hydrothermal Vent"
+                else:
+                    biome_name = "Abyssal Trench"
 
             ocean_attributes = {
                 "underwater_biome": biome_name,
