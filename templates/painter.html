@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shatterlands Painter</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #222; color: #fff; }
+        .container { display: flex; gap: 20px; }
+        /* Scale the 100x100 canvas up to 500x500 visually without blurring */
+        #mapCanvas {
+            width: 500px;
+            height: 500px;
+            border: 2px solid #555;
+            background: #808080; /* Neutral gray = sea level 0.0 */
+            image-rendering: pixelated; 
+            cursor: crosshair;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #333;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        input, select, button { margin-top: 5px; padding: 8px; }
+        button { background: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #45a049; }
+        .brush-controls { display: flex; gap: 10px; }
+        .brush-preview { width: 30px; height: 30px; border: 1px solid #fff; }
+    </style>
+</head>
+<body>
+
+<h2>Shatterlands Global Map Painter</h2>
+<div class="container">
+    <canvas id="mapCanvas" width="100" height="100"></canvas>
+    
+    <div class="controls">
+        <h3>Brush Settings</h3>
+        <div class="control-group">
+            <label>Elevation (Grayscale 0-255): <span id="elevVal">128 (Sea Level)</span></label>
+            <input type="range" id="brushColor" min="0" max="255" value="128">
+            <div style="display:flex; justify-content: space-between; font-size: 12px; color: #aaa;">
+                <span>0 (Trench)</span><span>255 (Peak)</span>
+            </div>
+        </div>
+        <div class="brush-controls">
+            <div class="brush-preview" id="brushPreview" style="background: rgb(128,128,128);"></div>
+            <div class="control-group" style="flex-grow:1;">
+                <label>Brush Size:</label>
+                <input type="range" id="brushSize" min="1" max="10" value="2">
+            </div>
+        </div>
+        
+        <hr style="width: 100%; border-color: #555;">
+        
+        <h3>Global Weather Dynamics</h3>
+        <div class="control-group">
+            <label>Global Wind Direction (Degrees):</label>
+            <input type="number" id="wind" min="0" max="360" value="90">
+        </div>
+        <div class="control-group">
+            <label>Global Temp Offset (-1.0 to 1.0):</label>
+            <input type="number" id="tempOffset" step="0.1" value="0.0">
+        </div>
+        
+        <button onclick="saveMap()" id="saveBtn">Save to Simulator DB</button>
+        <span id="status" style="color: #4CAF50; font-size: 14px; text-align: center;"></span>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    let painting = false;
+
+    // Fill initial canvas with sea level
+    ctx.fillStyle = "rgb(128, 128, 128)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const brushColorInput = document.getElementById('brushColor');
+    const brushPreview = document.getElementById('brushPreview');
+    const elevVal = document.getElementById('elevVal');
+    const brushSizeInput = document.getElementById('brushSize');
+
+    brushColorInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        brushPreview.style.background = `rgb(${val}, ${val}, ${val})`;
+        let label = "Sea Level";
+        if(val > 200) label = "Mountain Peak";
+        else if(val < 50) label = "Abyssal Trench";
+        elevVal.innerText = `${val} (${label})`;
+    });
+
+    // We must scale pointer events because CSS scales the canvas
+    function getMousePos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        // Scale mouse coordinates to match actual canvas resolution (100x100)
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: Math.floor((evt.clientX - rect.left) * scaleX),
+            y: Math.floor((evt.clientY - rect.top) * scaleY)
+        };
+    }
+
+    function draw(evt) {
+        if (!painting) return;
+        const pos = getMousePos(evt);
+        const size = parseInt(brushSizeInput.value);
+        const val = brushColorInput.value;
+        
+        ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+        // Center the brush on the cursor
+        ctx.fillRect(pos.x - Math.floor(size/2), pos.y - Math.floor(size/2), size, size);
+    }
+
+    canvas.addEventListener('mousedown', (e) => { painting = true; draw(e); });
+    window.addEventListener('mouseup', () => painting = false);
+    canvas.addEventListener('mousemove', draw);
+
+    function saveMap() {
+        const btn = document.getElementById('saveBtn');
+        const status = document.getElementById('status');
+        btn.innerText = "Saving...";
+        
+        const data = {
+            image: canvas.toDataURL("image/png"),
+            wind: document.getElementById('wind').value,
+            tempOffset: document.getElementById('tempOffset').value
+        };
+        
+        fetch('/save_map', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data) 
+        }).then(response => {
+            btn.innerText = "Save to Simulator DB";
+            status.innerText = "Saved successfully!";
+            setTimeout(() => status.innerText = "", 3000);
+        }).catch(err => {
+            btn.innerText = "Save to Simulator DB";
+            status.innerText = "Error saving!";
+            status.style.color = "red";
+        });
+    }
+</script>
+</body>
+</html>

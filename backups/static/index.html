@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shatterlands Director</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Shatterlands Global Director</h1>
+        <div id="controls">
+            <span>Ticks:</span>
+            <input type="range" id="tickSlider" min="1" max="100" value="1">
+            <span id="tickValue">1</span>
+            <button id="runBtn">▶ Run Simulation</button>
+            <div id="status">Loading...</div>
+        </div>
+    </header>
+
+    <main>
+        <div id="left-panel">
+            <h3>Mini-Map</h3>
+            <p class="caption">Click to set Main Viewport</p>
+            <canvas id="minimap" width="230" height="230"></canvas>
+            
+            <div id="hex-details">
+                <h3>📍 Hex Detail</h3>
+                <div id="hex-content">Click a hex in the Main Map.</div>
+            </div>
+            
+            <div id="cluster-details">
+                <h3>🧩 Cluster Overview</h3>
+                <div id="cluster-content">Double-click a hex in the Main Map.</div>
+            </div>
+        </div>
+
+        <div id="center-panel">
+            <h3>🌐 Main Viewport</h3>
+            <p class="caption">Click: Hex | Double-Click: Cluster | Drag: Pan</p>
+            <canvas id="mainmap" width="800" height="600"></canvas>
+        </div>
+    </main>
+
+    <footer>
+        <h3>📜 Event Logs</h3>
+        <div id="logs"></div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

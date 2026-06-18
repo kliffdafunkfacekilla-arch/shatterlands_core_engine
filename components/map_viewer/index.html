@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { margin: 0; padding: 0; overflow: hidden; background: #1e1e1e; font-family: sans-serif; user-select: none; }
+    canvas { display: block; cursor: crosshair; }
+    #tooltip { position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 5px; border-radius: 4px; display: none; pointer-events: none; font-size: 12px;}
+  </style>
+</head>
+<body>
+  <canvas id="mapCanvas"></canvas>
+  <div id="tooltip"></div>
+
+  <script>
+    // === STREAMLIT COMPONENT API ===
+    function sendMessageToStreamlit(type, data) {
+      window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: type,
+        ...data
+      }, "*");
+    }
+
+    function setComponentValue(value) {
+      sendMessageToStreamlit("setComponentValue", { value: value });
+    }
+
+    function setFrameHeight(height) {
+      sendMessageToStreamlit("setFrameHeight", { height: height });
+    }
+
+    sendMessageToStreamlit("streamlit:componentReady", {apiVersion: 1});
+
+    let mapData = null;
+    let canvas = document.getElementById("mapCanvas");
+    let ctx = canvas.getContext("2d");
+    
+    // Set a default size so it's not invisible
+    canvas.width = 800;
+    canvas.height = 500;
+    ctx.fillStyle = "red";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+    ctx.fillText("Loading Map Data...", 50, 50);
+    setFrameHeight(500);
+
+    let scale = 2; // Fixed scale for mini-map
+    let offsetX = 0;
+    let offsetY = 0;
+    
+    // Hex math constants
+    const hexWidth = Math.sqrt(3) * scale;
+    const hexHeight = 2 * scale;
+    const xOffsetStep = hexWidth;
+    const yOffsetStep = 3/4 * hexHeight;
+
+    window.addEventListener("message", function(event) {
+      if (event.data.type === "streamlit:render") {
+        const args = event.data.args;
+        if (args.map_data) {
+          mapData = args.map_data;
+          
+          // Determine bounds to center
+          let minX = 99999, maxX = -99999, minY = 99999, maxY = -99999;
+          mapData.forEach(h => {
+             let q = h[0], r = h[1];
+             let px = hexWidth * (q + r/2);
+             let py = yOffsetStep * r;
+             if (px < minX) minX = px;
+             if (px > maxX) maxX = px;
+             if (py < minY) minY = py;
+             if (py > maxY) maxY = py;
+          });
+          
+          let w = maxX - minX + hexWidth * 4;
+          let h_canvas = maxY - minY + hexHeight * 4;
+          
+          // Limit canvas height for UI
+          canvas.width = Math.max(800, w);
+          canvas.height = Math.max(500, h_canvas);
+          
+          offsetX = (canvas.width - w) / 2 - minX;
+          offsetY = (canvas.height - h_canvas) / 2 - minY;
+
+          drawMap();
+          setFrameHeight(canvas.height);
+        }
+      }
+    });
+
+    const BIOME_COLORS = {
+        0: "#FFFF00", // Jungle
+        1: "#228B22", // Forest
+        2: "#00FFFF", // Taiga
+        3: "#DAA520", // Desert
+        4: "#6B8E23", // Plains
+        5: "#2F4F4F", // Tundra
+        6: "#8B4513", // Mountain
+        7: "#FF4500", // Volcano
+        8: "#FFFAFA", // Arctic
+        9: "#20B2AA", // Kelp Forest
+        10: "#0000CD", // Coral Reef
+        11: "#000080", // Arctic Ocean
+        12: "#000033", // Abyssal Trench
+        13: "#4B0082"  // Prison Wastes
+    };
+
+    function drawHex(x, y, color, icon) {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        let angle_deg = 60 * i - 30;
+        let angle_rad = Math.PI / 180 * angle_deg;
+        let px = x + scale * Math.cos(angle_rad);
+        let py = y + scale * Math.sin(angle_rad);
+        if (i === 0) { ctx.moveTo(px, py); } 
+        else { ctx.lineTo(px, py); }
+      }
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      
+      if(icon) {
+          ctx.fillStyle = "#FFF";
+          ctx.font = `${scale}px Arial`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(icon, x, y);
+      }
+    }
+
+    function drawMap() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!mapData) return;
+      
+      mapData.forEach(h => {
+        let q = h[0], r = h[1], biome = h[2], has_settlement = h[3];
+        let px = offsetX + hexWidth * (q + r/2);
+        let py = offsetY + yOffsetStep * r;
+        let color = BIOME_COLORS[biome] || "#333";
+        let icon = "";
+        if (has_settlement) icon = "🏰";
+        else if (biome === 1) icon = "🌲";
+        else if (biome === 6) icon = "⛰️";
+        
+        drawHex(px, py, color, icon);
+      });
+    }
+
+    // Click handling
+    let lastClickTime = 0;
+    canvas.addEventListener("click", function(e) {
+      let rect = canvas.getBoundingClientRect();
+      let clickX = e.clientX - rect.left;
+      let clickY = e.clientY - rect.top;
+      
+      // Find nearest hex
+      let nearestHex = null;
+      let minDist = 999999;
+      
+      mapData.forEach(h => {
+        let q = h[0], r = h[1];
+        let px = offsetX + hexWidth * (q + r/2);
+        let py = offsetY + yOffsetStep * r;
+        let dist = Math.pow(px - clickX, 2) + Math.pow(py - clickY, 2);
+        if (dist < minDist) {
+          minDist = dist;
+          nearestHex = h;
+        }
+      });
+      
+      if (!nearestHex || Math.sqrt(minDist) > hexWidth) return;
+
+      let currentTime = new Date().getTime();
+      let isDoubleClick = (currentTime - lastClickTime) < 300;
+      lastClickTime = currentTime;
+
+      if (isDoubleClick) {
+        setComponentValue({action: "double_click", q: nearestHex[0], r: nearestHex[1]});
+      } else {
+        // Wait briefly to ensure it's not a double click before sending single click
+        setTimeout(() => {
+          if (new Date().getTime() - lastClickTime > 250) {
+            setComponentValue({action: "click", q: nearestHex[0], r: nearestHex[1]});
+          }
+        }, 250);
+      }
+    });
+
+  </script>
+</body>
+</html>
