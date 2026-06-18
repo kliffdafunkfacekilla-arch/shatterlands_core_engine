@@ -1,10 +1,10 @@
 name: Shatterlands Zero-Intervention Pipeline
 
 on:
-  # Triggers when a Jules PR opens OR when a PR gets successfully merged
   pull_request:
     types: [opened, closed]
     branches: [main]
+  workflow_dispatch:  # UNLOCKS MANUAL TERMINAL COMMANDS NATIVELY
 
 permissions:
   contents: write
