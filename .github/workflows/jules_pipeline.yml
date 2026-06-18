@@ -31,6 +31,7 @@ jobs:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
+      # [PROMPT 2] Triggers after the initial core_engine migration merges
       - name: Trigger Narrative Chronicle Task
         if: contains(github.event.pull_request.title, 'core_engine') || contains(github.event.pull_request.title, 'Initial commit')
         uses: google-labs-code/jules-action@v1
@@ -39,8 +40,9 @@ jobs:
           starting_branch: main
           prompt: |
             Task: Implement the Headless Narrative Chronicle System inside `taleweaver_chronicle/`.
-            Harvest your text formatting logic from TALEWEAVERS. Build event_parser.py to convert raw DB logs into prose, and history_ledger.py to append them to a timeline markdown file.
+            Harvest your text formatting logic from TALEWEAVERS. Build event_parser.py to convert raw DB logs into prose, and history_ledger.py to append them to a timeline markdown file. Add comprehensive docstrings.
 
+      # [PROMPT 3] Triggers after the Narrative Chronicle layer merges
       - name: Trigger AI GM Context Director Task
         if: contains(github.event.pull_request.title, 'Narrative') || contains(github.event.pull_request.title, 'chronicle')
         uses: google-labs-code/jules-action@v1
@@ -49,4 +51,30 @@ jobs:
           starting_branch: main
           prompt: |
             Task: Implement the Automated GM Context Director inside `ai_director/`.
-            Harvest dynamic context maps from GMAI and DMAI. Build oracle.py to package player coordinates into an optimized JSON payload for external LLM parsing.
+            Harvest dynamic context maps from GMAI and DMAI. Build oracle.py to package player coordinates into an optimized JSON payload for external LLM parsing. Ensure it enforces strict parameterization.
+
+      # [PROMPT 4] NEW: Triggers after the AI Director merges -> Builds out Frontend Contract Data Mapper
+      - name: Trigger Visual Client Interface Contract Task
+        if: contains(github.event.pull_request.title, 'GM Context') || contains(github.event.pull_request.title, 'ai_director')
+        uses: google-labs-code/jules-action@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: main
+          prompt: |
+            Task: Implement Visual Client Interface VTT Data Contract Layer inside `client_vtt/`.
+            Harvest any legacy client and layout components from the root and map them inside `client_vtt/src/`. 
+            1. Build a canvas adapter script (`client_vtt/src/canvas_adapter.js` or `.py` equivalent structure) that accepts our JSON payload coordinates from the AI Director.
+            2. Implement a math parsing utility that takes the incoming regional payload and scales it down to the exact 55-ring local grid math required to accurately project coordinate positions on a grid.
+
+      # [PROMPT 5] NEW: Triggers after VTT layer merges -> Ties all modules into a functional End-to-End Test Suite
+      - name: Trigger Master Integration Test Suite Task
+        if: contains(github.event.pull_request.title, 'Visual Client') || contains(github.event.pull_request.title, 'client_vtt')
+        uses: google-labs-code/jules-action@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: main
+          prompt: |
+            Task: Implement Master Integration Verification Suite in Root.
+            1. Create an integration test script `test_master_pipeline.py` at the root of the repository.
+            2. The test must programmatically trigger `core_engine/engine.py` to tick the world state, verify database row state writing, pass that event log to `taleweaver_chronicle/` to render historical markdown text, and verify that the `ai_director/` outputs a perfectly compliant JSON structure for the `client_vtt/` contract layout.
+            3. Ensure it runs natively in the environment with a clean `pytest` check.
