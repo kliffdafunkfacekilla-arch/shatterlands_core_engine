@@ -26,7 +26,7 @@ jobs:
           gh pr review ${{ github.event.pull_request.number }} --approve
           gh pr merge ${{ github.event.pull_request.number }} --merge --auto --delete-branch
 
-# JOB 2: Chain reaction that fires the next task the second a merge occurs
+  # JOB 2: Chain reaction that fires the next task the second a merge occurs
   sequence_next_prompt:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
       # [PROMPT 2] Triggers after the initial core_engine migration merges
       - name: Trigger Narrative Chronicle Task
         if: contains(github.event.pull_request.title, 'core_engine') || contains(github.event.pull_request.title, 'Initial commit')
-        uses: google-labs-code/jules-action@v1
+        uses: google-labs-code/jules-action@main
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: main
@@ -50,7 +50,7 @@ jobs:
       # [PROMPT 3] Triggers after the Narrative Chronicle layer merges
       - name: Trigger AI GM Context Director Task
         if: contains(github.event.pull_request.title, 'Narrative') || contains(github.event.pull_request.title, 'chronicle')
-        uses: google-labs-code/jules-action@v1
+        uses: google-labs-code/jules-action@main
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: main
@@ -66,7 +66,7 @@ jobs:
       # [PROMPT 4] Triggers after the AI Director merges -> Builds out Frontend Contract Data Mapper
       - name: Trigger Visual Client Interface Contract Task
         if: contains(github.event.pull_request.title, 'GM Context') || contains(github.event.pull_request.title, 'ai_director')
-        uses: google-labs-code/jules-action@v1
+        uses: google-labs-code/jules-action@main
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: main
@@ -82,7 +82,7 @@ jobs:
       # [PROMPT 5] Triggers after VTT layer merges -> Ties all modules into a functional End-to-End Test Suite
       - name: Trigger Master Integration Test Suite Task
         if: contains(github.event.pull_request.title, 'Visual Client') || contains(github.event.pull_request.title, 'client_vtt')
-        uses: google-labs-code/jules-action@v1
+        uses: google-labs-code/jules-action@main
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           starting_branch: main
