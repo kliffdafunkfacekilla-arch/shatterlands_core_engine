@@ -3,8 +3,8 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import os
-from engine import FractalEngine
-from codec import FACTIONS, RESOURCES, OVERLAYS, unpack_micro_hex, get_biome_name, get_overlay_name
+from core_engine.engine import FractalEngine
+from core_engine.codec import FACTIONS, RESOURCES, OVERLAYS, unpack_micro_hex, get_biome_name, get_overlay_name
 
 import json
 
@@ -44,7 +44,7 @@ with st.sidebar:
     has_structure = st.checkbox("Build Structure (High Yield / High Impact)", value=False)
     
     if st.button("Spawn Settlement"):
-        from engine import FractalEngine
+        from core_engine.engine import FractalEngine
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("INSERT INTO settlements (hex_id, faction_id, has_structure) VALUES (?, ?, ?)", 
@@ -143,7 +143,7 @@ with tab_genesis:
     # 2. Genesis Action
     if st.button("🚀 BUILD PLANET"):
         with st.spinner("Generating geography..."):
-            from db_setup import init_database, seed_planet
+            from core_engine.db_setup import init_database, seed_planet
             conn = init_database()
             seed_planet(conn, map_size=map_size)
             conn.close()
