@@ -26,9 +26,10 @@ def parse_event(event_dict, elevation):
             # Sub-surface abyssal events
             # Translate surface concepts to underwater ones
             translated_message = message.replace("Wood", "Kelp")
-            translated_message = translated_message.replace("crop supply", "hydrothermal vent resource")
+            translated_message = translated_message.replace("crop supply failures", "hydrothermal vent resource battles")
             translated_message = translated_message.replace("trade friction", "deep marine faction shifts")
-            translated_message = translated_message.replace("ecology", "oceanic trench ecosystem")
+            translated_message = translated_message.replace("settlement growth", "oceanic trench ecosystem collapses")
+            translated_message = translated_message.replace("ecology", "oceanic trench ecosystem collapses")
 
             prose = f"[Tick {tick}] 🌊 In the abyssal depths at ({q}, {r}): {translated_message}"
         else:
