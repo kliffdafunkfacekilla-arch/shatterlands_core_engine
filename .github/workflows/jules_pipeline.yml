@@ -26,7 +26,7 @@ jobs:
           gh pr review ${{ github.event.pull_request.number }} --approve
           gh pr merge ${{ github.event.pull_request.number }} --merge --auto --delete-branch
 
-  # JOB 2: Chain reaction that fires the next task the second a merge occurs
+# JOB 2: Chain reaction that fires the next task the second a merge occurs
   sequence_next_prompt:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
@@ -40,7 +40,12 @@ jobs:
           starting_branch: main
           prompt: |
             Task: Implement the Headless Narrative Chronicle System inside `taleweaver_chronicle/`.
-            Harvest your text formatting logic from TALEWEAVERS. Build event_parser.py to convert raw DB logs into prose, and history_ledger.py to append them to a timeline markdown file. Add comprehensive docstrings.
+            Harvest text formatting logic from TALEWEAVERS. 
+            1. Build event_parser.py to convert raw DB logs into narrative prose. It must explicitly recognize, differentiate, and cleanly translate:
+               - Surface civilization events (trade friction, crop supply failures, settlement growth).
+               - Sub-surface abyssal events (oceanic trench ecosystem collapses, hydrothermal vent resource battles, deep marine faction shifts).
+               - Fluid Chaos Energy fluctuations (the movement of magical storms across coordinates, reality-warping mutations, and localized spell-storms).
+            2. Build history_ledger.py to append these parsed localized events into a continuous markdown timeline file tracking the world's chronological progress.
 
       # [PROMPT 3] Triggers after the Narrative Chronicle layer merges
       - name: Trigger AI GM Context Director Task
@@ -51,9 +56,14 @@ jobs:
           starting_branch: main
           prompt: |
             Task: Implement the Automated GM Context Director inside `ai_director/`.
-            Harvest dynamic context maps from GMAI and DMAI. Build oracle.py to package player coordinates into an optimized JSON payload for external LLM parsing. Ensure it enforces strict parameterization.
+            Harvest dynamic context maps from GMAI and DMAI. 
+            1. Build oracle.py to package player coordinates into a clean JSON payload for external LLM parsing. 
+            2. The payload builder must explicitly detect and handle the 3D depth layer of the cell:
+               - If the coordinate is marine/ocean, it must pull the specific underwater biome tier attributes (Bioluminescent Reef, Trench, Vent), active current indices, and deep resource supply networks from our persistent Tier 2 tables.
+               - It must seamlessly layer the active ambient Chaos Energy values, track the vector paths of moving magical storms intersecting that coordinate, and output the dynamic environmental side-effects currently impacting that hex.
+            3. Inside `ai_director/npc_behavior.py`, structure our NPC and Paragon interaction tables so their current motivations and trust metrics are accurately scaled by the local chaos index and settlement faction alignments.
 
-      # [PROMPT 4] NEW: Triggers after the AI Director merges -> Builds out Frontend Contract Data Mapper
+      # [PROMPT 4] Triggers after the AI Director merges -> Builds out Frontend Contract Data Mapper
       - name: Trigger Visual Client Interface Contract Task
         if: contains(github.event.pull_request.title, 'GM Context') || contains(github.event.pull_request.title, 'ai_director')
         uses: google-labs-code/jules-action@v1
@@ -62,11 +72,14 @@ jobs:
           starting_branch: main
           prompt: |
             Task: Implement Visual Client Interface VTT Data Contract Layer inside `client_vtt/`.
-            Harvest any legacy client and layout components from the root and map them inside `client_vtt/src/`. 
-            1. Build a canvas adapter script (`client_vtt/src/canvas_adapter.js` or `.py` equivalent structure) that accepts our JSON payload coordinates from the AI Director.
-            2. Implement a math parsing utility that takes the incoming regional payload and scales it down to the exact 55-ring local grid math required to accurately project coordinate positions on a grid.
+            Harvest legacy layout components from the root and map them inside `client_vtt/src/` to establish our visual data rendering contract.
+            1. Build a canvas adapter script that accepts our JSON payload coordinates directly from the AI Director.
+            2. The script must successfully parse and scale down the active 55-ring local grid math (down to the 5-foot tactical tile tier).
+            3. The renderer contract must include strict data definitions to visually project:
+               - Vertical depth markers (separating surface ocean travel from abyssal floor data).
+               - The moving boundaries and active radius of fluid Chaos Energy storms as they drift across the Tier 2 grid system.
 
-      # [PROMPT 5] NEW: Triggers after VTT layer merges -> Ties all modules into a functional End-to-End Test Suite
+      # [PROMPT 5] Triggers after VTT layer merges -> Ties all modules into a functional End-to-End Test Suite
       - name: Trigger Master Integration Test Suite Task
         if: contains(github.event.pull_request.title, 'Visual Client') || contains(github.event.pull_request.title, 'client_vtt')
         uses: google-labs-code/jules-action@v1
@@ -75,6 +88,10 @@ jobs:
           starting_branch: main
           prompt: |
             Task: Implement Master Integration Verification Suite in Root.
-            1. Create an integration test script `test_master_pipeline.py` at the root of the repository.
-            2. The test must programmatically trigger `core_engine/engine.py` to tick the world state, verify database row state writing, pass that event log to `taleweaver_chronicle/` to render historical markdown text, and verify that the `ai_director/` outputs a perfectly compliant JSON structure for the `client_vtt/` contract layout.
-            3. Ensure it runs natively in the environment with a clean `pytest` check.
+            1. Create an integration test script `test_master_pipeline.py` at the root of the repository to serve as our absolute system validation check.
+            2. The script must programmatically trigger `core_engine/engine.py` to process a full world simulation tick. 
+            3. The test loop must explicitly assert and verify:
+               - That both surface and underwater Tier 2 persistent biomes initialize correctly and preserve state in `world_state.db`.
+               - That fluid Chaos Energy vectors calculate properly across coordinates during the tick.
+               - That the event logs successfully pass to `taleweaver_chronicle/` to produce readable prose, and that `ai_director/` packages the 3D coordinates into a flawless JSON structure.
+            4. Ensure it passes natively via `pytest` with 0 circular imports or broken constraints.
