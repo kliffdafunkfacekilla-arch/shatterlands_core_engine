@@ -45,6 +45,37 @@ def get_map():
     conn.close()
     return jsonify({"hexes": hexes, "settlements": settlements, "entities": entities, "weather": weather})
 
+@app.route('/api/cluster/<global_q>/<global_r>')
+def get_cluster(global_q, global_r):
+    global_q = int(global_q)
+    global_r = int(global_r)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT micro_q, micro_r, pack_ecology, settlement_type, infrastructure_asset, micro_data_json
+        FROM simulation_clusters
+        WHERE global_q = ? AND global_r = ?
+    ''', (global_q, global_r))
+
+    hexes = []
+    for row in cursor.fetchall():
+        pack_eco = row["pack_ecology"]
+        p1 = pack_eco & 0xFF
+        p2 = (pack_eco >> 8) & 0xFF
+        p3 = (pack_eco >> 16) & 0xFF
+        res = (pack_eco >> 24) & 0xFFFF
+
+        hexes.append({
+            "micro_q": row["micro_q"],
+            "micro_r": row["micro_r"],
+            "ecology": {"plants": p1, "prey": p2, "predators": p3, "resources": res},
+            "settlement": row["settlement_type"],
+            "infrastructure": row["infrastructure_asset"],
+            "micro_data": json.loads(row["micro_data_json"]) if row["micro_data_json"] else {}
+        })
+    conn.close()
+    return jsonify({"global_q": global_q, "global_r": global_r, "hexes": hexes})
+
 @app.route('/api/status')
 def get_status():
     conn = get_db()

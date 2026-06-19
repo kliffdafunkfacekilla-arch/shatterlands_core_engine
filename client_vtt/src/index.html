@@ -40,6 +40,48 @@
 
     <div class="layout-grid">
         <div id="canvas-container">
+<!-- Live Numerical Telemetry Dashboard Panel -->
+<div id="eco-telemetry-hud" style="
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 320px;
+    background: rgba(15, 23, 42, 0.95);
+    color: #e2e8f0;
+    font-family: monospace;
+    border: 2px solid #38bdf8;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    z-index: 1000;
+">
+    <h3 style="margin: 0 0 10px 0; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 5px; font-size: 14px;">
+        🛰️ LIVE CLUSTER TELEMETRY
+    </h3>
+    <div id="hud-global-coords" style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Global Hex: Selecting...</div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; font-size: 12px;">
+        <div style="background: #1e293b; padding: 6px; border-radius: 4px;">
+            <span style="color: #4ade80;">🌿 P1 (Plants):</span> <strong id="hud-avg-p1">0</strong>
+        </div>
+        <div style="background: #1e293b; padding: 6px; border-radius: 4px;">
+            <span style="color: #fbbf24;">🐇 P2 (Prey):</span> <strong id="hud-avg-p2">0</strong>
+        </div>
+        <div style="background: #1e293b; padding: 6px; border-radius: 4px;">
+            <span style="color: #f87171;">🐺 P3 (Predators):</span> <strong id="hud-avg-p3">0</strong>
+        </div>
+        <div style="background: #1e293b; padding: 6px; border-radius: 4px;">
+            <span style="color: #a78bfa;">💎 Res (Build):</span> <strong id="hud-avg-res">0</strong>
+        </div>
+    </div>
+
+    <div style="border-top: 1px solid #334155; padding-top: 8px;">
+        <div style="font-size: 11px; color: #38bdf8; margin-bottom: 4px;">🎯 SELECTED SUB-HEX NODE</div>
+        <div id="hud-node-details" style="font-size: 12px; background: #0f172a; border: 1px solid #1e293b; padding: 6px; border-radius: 4px; min-height: 48px; line-height: 1.4;">
+            Hover over a nested 18.5 km tile to inspect local numbers...
+        </div>
+    </div>
+</div>
             <canvas id="map-canvas" width="1000" height="600"></canvas>
         </div>
         
