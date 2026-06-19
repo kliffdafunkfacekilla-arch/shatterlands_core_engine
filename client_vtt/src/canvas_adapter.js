@@ -37,3 +37,143 @@ function renderMap() {
         drawHexagon(x, y, color, stroke);
     });
 }
+
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+let mapData = { hexes: [], settlements: [], entities: [], weather: [] };
+let viewSubSurface = false;
+let zoom = 1.0;
+const baseHexSize = 10;
+let offsetX = canvas.width / 2;
+let offsetY = canvas.height / 2;
+
+function hexToPixel(q, r) {
+    const size = baseHexSize * zoom;
+    const x = size * Math.sqrt(3) * (q + r / 2);
+    const y = size * 3/2 * r;
+    return { x: x + offsetX, y: y + offsetY };
+}
+
+function pixelToHex(x, y) {
+    const size = baseHexSize * zoom;
+    const ptX = x - offsetX;
+    const ptY = y - offsetY;
+    const q = (Math.sqrt(3)/3 * ptX - 1/3 * ptY) / size;
+    const r = (2/3 * ptY) / size;
+    return { q: Math.round(q), r: Math.round(r) };
+}
+
+function drawHexagon(x, y, color, stroke) {
+    const size = baseHexSize * zoom;
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 180) * (60 * i - 30);
+        const px = x + size * Math.cos(angle);
+        const py = y + size * Math.sin(angle);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.stroke();
+}
+
+let isDragging = false;
+let lastX = 0, lastY = 0;
+
+canvas.addEventListener('mousedown', e => {
+    isDragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+});
+
+canvas.addEventListener('mousemove', e => {
+    if (isDragging) {
+        offsetX += e.clientX - lastX;
+        offsetY += e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        renderMap();
+    } else {
+        // Hover inspect
+        const rect = canvas.getBoundingClientRect();
+        const hexCoords = pixelToHex(e.clientX - rect.left, e.clientY - rect.top);
+        const hex = mapData.hexes.find(h => h.q === hexCoords.q && h.r === hexCoords.r);
+        if (hex) {
+            const biome = hex.pack_geo & 0xF;
+            const elevation = (hex.pack_geo >> 4) & 0xF;
+            document.getElementById('inspector-output').innerHTML = `
+                <strong>Coordinates:</strong> q=${hex.q}, r=${hex.r}<br>
+                <strong>Biome ID:</strong> ${biome}<br>
+                <strong>Elevation:</strong> ${elevation}<br>
+                <strong>Ecology Pack:</strong> ${hex.pack_ecology}<br>
+            `;
+        }
+    }
+});
+
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('mouseleave', () => isDragging = false);
+canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = zoom * zoomFactor;
+    if (newZoom < 0.1 || newZoom > 10) return;
+
+    // Zoom towards mouse
+    offsetX = mouseX - (mouseX - offsetX) * zoomFactor;
+    offsetY = mouseY - (mouseY - offsetY) * zoomFactor;
+    zoom = newZoom;
+
+    renderMap();
+});
+
+document.getElementById('btn-subsurface').addEventListener('click', () => {
+    viewSubSurface = !viewSubSurface;
+    renderMap();
+});
+
+document.getElementById('btn-tick').addEventListener('click', async () => {
+    await fetch('/api/tick', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ticks: 1}) });
+    await fetchState();
+});
+
+async function fetchState() {
+    try {
+        const [mapRes, statusRes, logsRes] = await Promise.all([
+            fetch('/api/map'),
+            fetch('/api/status'),
+            fetch('/api/logs')
+        ]);
+
+        mapData = await mapRes.json();
+        const status = await statusRes.json();
+        const logs = await logsRes.json();
+
+        document.getElementById('sim-time').innerText = `Tick: ${status.tick} | Day: ${status.day} | Year: ${status.year} | Season: ${status.season}`;
+        document.getElementById('global-pop').innerText = `Population: ${status.global_population}`;
+
+        const logStream = document.getElementById('log-stream');
+        logStream.innerHTML = '';
+        logs.forEach(log => {
+            const el = document.createElement('div');
+            el.className = `log-entry ${log.category}`;
+            el.innerText = `[Tick ${log.tick}] ${log.category}: ${log.message}`;
+            logStream.appendChild(el);
+        });
+
+        renderMap();
+    } catch (e) {
+        console.error("Failed to fetch state:", e);
+    }
+}
+
+// Initial fetch
+fetchState();
+setInterval(fetchState, 5000);
