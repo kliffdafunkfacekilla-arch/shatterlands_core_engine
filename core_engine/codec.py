@@ -1,6 +1,48 @@
 import random
 import json
 
+BIOME_MAPPINGS = {
+    'ocean': 9,
+    'reef': 10,
+    'vent_field': 11,
+    'trench': 12,
+    'plains': 4,
+    'forest': 1,
+    'mountain': 6,
+    'desert': 3,
+    'glacier': 8,
+    'jungle': 0,
+    'taiga': 2,
+    'tundra': 5,
+    'volcano': 7,
+    'arctic': 8,
+    'prison': 13,
+    'wastes': 13
+}
+
+CHAOS_DOMAINS = {
+    "WARP_STORM": "WARP",
+    "CULT_INSURGENCY": "CULT",
+    "LUX_ECLIPSE": "LUX",
+    "NEXUS_BREACH": "NEXUS"
+}
+
+DEFAULT_TAGS = {
+    "Forest": ["FLAMMABLE", "ORGANIC"],
+    "Plains": ["OPEN_TERRAIN", "ORGANIC"],
+    "Mountain": ["HIGH_ELEVATION", "MINERAL_RICH", "HARD_TERRAIN"],
+    "Desert": ["ARID", "HEAT_SOURCE"],
+    "Glacier": ["COLD", "WATER_SOURCE", "HARD_TERRAIN"],
+    "Ocean": ["WATER_SOURCE", "DEEP"],
+    "Reef": ["ORGANIC", "WATER_SOURCE"],
+    "Vent_Field": ["HEAT_SOURCE", "MINERAL_RICH", "PRESSURE_HIGH"],
+    "Trench": ["DEEP", "PRESSURE_HIGH", "DARK"],
+    "Jungle": ["FLAMMABLE", "ORGANIC", "DENSE"],
+    "Taiga": ["COLD", "FLAMMABLE", "ORGANIC"],
+    "Tundra": ["COLD", "ARID"],
+    "Volcano": ["HEAT_SOURCE", "MINERAL_RICH", "HAZARDOUS"]
+}
+
 BIOME_RESOURCES = {
     "Forest": {"plant": "Berries", "meat": "Venison", "material": "Leather", "building": "Wood", "reagent": "Resin"},
     "Plains": {"plant": "Grain", "meat": "Beef", "material": "Leather", "building": "Clay", "reagent": "Fiber"},
