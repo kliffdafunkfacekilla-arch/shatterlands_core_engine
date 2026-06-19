@@ -1069,12 +1069,56 @@ class GlobalEngine:
             for group in ["Survival", "Building", "Materials", "Reagents", "Magic", "Equipment", "Consumables", "Vehicles"]:
                 if group not in inventory: inventory[group] = {}
 
-            local_weather_farm = 1.0
+            # Evaluate Tags and Rule Overrides
+            cell_tags = []
+            rule_overrides = {}
+            if micro_json:
+                try:
+                    micro_data = json.loads(micro_json)
+                    if isinstance(micro_data, dict):
+                        cell_tags = micro_data.get("tags", [])
+                        rule_overrides = micro_data.get("rule_overrides", {})
+                except json.JSONDecodeError:
+                    pass
+
+            pop_growth_mod = rule_overrides.get("population_growth_modifier", 1.0)
+            res_tick_mod = rule_overrides.get("resource_tick_multiplier", 1.0)
+
+            local_weather_farm = 1.0 * res_tick_mod
             local_consume = 1.0
+
+            # Example Tag Reaction: FLAMMABLE
+            is_flammable = "FLAMMABLE" in cell_tags
 
             for w_id, w_type, w_g_id, w_rad, wq, wr, w_align in active_entities:
                 dist = (abs(q - wq) + abs(r - wr) + abs(-q-r - (-wq-wr))) // 2
                 if dist <= w_rad:
+                    # Get storm attributes. w_align might contain a string of tags.
+                    # e.g., "FIRE,NEXUS,DESTRUCTIVE"
+                    storm_tags = []
+                    if w_align:
+                        storm_tags = [tag.strip() for tag in w_align.split(',')]
+
+                    # Tag evaluation with storms dynamically
+                    if "FIRE" in storm_tags and is_flammable:
+                        self.log_event("Chaos", f"A FIRE storm mutated a FLAMMABLE cell at {name} into CHARRED ruins!", conn)
+                        if "CHARRED" not in cell_tags:
+                            cell_tags.append("CHARRED")
+                        if "FLAMMABLE" in cell_tags:
+                            cell_tags.remove("FLAMMABLE")
+                        is_flammable = False
+                        sec -= 10.0
+                        pop -= max(1, int(pop * 0.1))
+                        # Save modified tags
+                        try:
+                            md = json.loads(micro_json) if micro_json else {}
+                            if isinstance(md, dict):
+                                md["tags"] = cell_tags
+                                micro_json = json.dumps(md)
+                                cursor.execute("UPDATE global_hexes SET micro_data_json=? WHERE id=?", (micro_json, g_hex_id))
+                        except json.JSONDecodeError:
+                            pass
+
                     if w_type == "Hurricane": local_weather_farm *= 0.5
                     elif w_type == "Tornado": sec -= 5.0
                     elif w_type == "Overcast": local_weather_farm *= 1.2
@@ -1112,6 +1156,16 @@ class GlobalEngine:
                 local_weather_farm *= 1.5
 
             farm_mult = weather_farm_mod * local_weather_farm * max(0.1, 1.0 - (hidden * 0.05))
+
+            # Apply pop_growth_mod if they grow population somewhere (e.g. at end of year or generally)
+            # Currently we can just apply it to spark_born/population growth if there is any,
+            # or multiply wealth/security as a proxy for the multiplier if it's general.
+            # But the requirement specifically mentions "multiplying baseline engine equations (like population growth curves)".
+            # If the engine has a natural growth logic per tick, we apply it.
+            # Looking at this loop, population natural growth seems to be missing except for prisons.
+            # Let's add a basic growth tick using the modifier if no other exists.
+            if self.tick % 10 == 0:
+                pop += int(max(1, pop * 0.01 * pop_growth_mod))
 
             if global_rank2_cleanse > 0 and hidden > 0:
                 cleansed = min(hidden, global_rank2_cleanse)

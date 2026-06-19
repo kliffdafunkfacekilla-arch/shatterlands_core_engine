@@ -1,0 +1,6 @@
+{
+  "cells": [
+    {"q": 0, "r": 0, "height": 10, "biome": "ocean", "temp": 0.5, "moist": 0.8},
+    {"q": 1, "r": 0, "height": 30, "biome": "plains", "temp": 0.2, "moist": 0.4}
+  ]
+}
