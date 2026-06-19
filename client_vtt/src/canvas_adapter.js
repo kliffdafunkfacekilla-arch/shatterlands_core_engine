@@ -1,3 +1,5 @@
+// Replace the old renderMap loop block inside client_vtt/src/canvas_adapter.js with this unified layout loop:
+
 function renderMap() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
