@@ -80,6 +80,67 @@ function drawHexagon(x, y, color, stroke) {
     ctx.stroke();
 }
 
+// Keep track of the active cluster data globally in the frontend for mouse-hover lookups
+let activeClusterHexes = [];
+
+function clearMicroCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawHexOnCanvas(micro_q, micro_r, color) {
+    const { x, y } = hexToPixel(micro_q, micro_r);
+    drawHexagon(x, y, color, '#111');
+}
+
+function pixelToHexAxial(x, y) {
+    const coords = pixelToHex(x, y);
+    return [coords.q, coords.r];
+}
+
+async function updateDashboardWithRealData(globalQ, globalR) {
+    document.getElementById("hud-global-coords").innerText = `Global Hex: (Q: ${globalQ}, R: ${globalR})`;
+
+    try {
+        const response = await fetch(`/api/cluster/${globalQ}/${globalR}`);
+        if (!response.ok) throw new Error("Network response failed.");
+        const data = await response.json();
+
+        activeClusterHexes = data.hexes; // Save the raw array of 91 nodes
+
+        let totalP1 = 0, totalP2 = 0, totalP3 = 0, totalRes = 0;
+
+        // Clear background canvas and map out the nested ring array
+        clearMicroCanvas();
+
+        activeClusterHexes.forEach(subHex => {
+            // Aggregate totals for the top-level averages
+            totalP1 += subHex.ecology.plants;
+            totalP2 += subHex.ecology.prey;
+            totalP3 += subHex.ecology.predators;
+            totalRes += subHex.ecology.resources;
+
+            // Run your existing visual tile rendering step based on the real types
+            let tileColor = `rgb(30, ${Math.min(200, 40 + subHex.ecology.plants)}, 30)`;
+            if (subHex.settlement === "Town Center") tileColor = "#d4af37";
+            else if (subHex.infrastructure === "Farm Field") tileColor = "#b45309";
+            else if (subHex.infrastructure === "Outpost Wall") tileColor = "#64748b";
+            else if (subHex.infrastructure === "Resource Mine") tileColor = "#0284c7";
+
+            drawHexOnCanvas(subHex.micro_q, subHex.micro_r, tileColor);
+        });
+
+        // Calculate and push cluster averages straight into the top display slots
+        const totalNodes = activeClusterHexes.length || 1;
+        document.getElementById("hud-avg-p1").innerText = Math.round(totalP1 / totalNodes);
+        document.getElementById("hud-avg-p2").innerText = Math.round(totalP2 / totalNodes);
+        document.getElementById("hud-avg-p3").innerText = Math.round(totalP3 / totalNodes);
+        document.getElementById("hud-avg-res").innerText = Math.round(totalRes / totalNodes);
+
+    } catch (err) {
+        console.error("Failed to update numerical HUD:", err);
+    }
+}
+
 let isDragging = false;
 let lastX = 0, lastY = 0;
 
@@ -88,6 +149,40 @@ canvas.addEventListener('mousedown', e => {
     lastX = e.clientX;
     lastY = e.clientY;
 });
+
+canvas.addEventListener('click', e => {
+    if (isDragging && (Math.abs(e.clientX - lastX) > 5 || Math.abs(e.clientY - lastY) > 5)) return;
+    const rect = canvas.getBoundingClientRect();
+    const hexCoords = pixelToHex(e.clientX - rect.left, e.clientY - rect.top);
+    updateDashboardWithRealData(hexCoords.q, hexCoords.r);
+});
+
+// 3. HOVER INTERACTION OVERLAY HOOK
+// Connect this tool directly to your existing canvas 'mousemove' event listener!
+function handleCanvasMouseMove(mouseEvent) {
+    // Convert your mouse screen coordinates to hex axial coordinates (micro_q, micro_r)
+    const rect = canvas.getBoundingClientRect();
+    const [mq, mr] = pixelToHexAxial(mouseEvent.clientX - rect.left, mouseEvent.clientY - rect.top);
+
+    // Scan our active 91-hex array for a coordinate match
+    const targetNode = activeClusterHexes.find(h => h.micro_q === mq && h.micro_r === mr);
+    const detailPanel = document.getElementById("hud-node-details");
+
+    if (targetNode) {
+        const eco = targetNode.ecology;
+        const structureLabel = targetNode.settlement || targetNode.infrastructure || "Untouched Wilderness";
+
+        detailPanel.innerHTML = `
+            <strong>Coord:</strong> (${mq}, ${mr})<br>
+            <strong>Type:</strong> <span style="color: #38bdf8;">${structureLabel}</span><br>
+            <span style="color: #4ade80;">P1: ${eco.plants}</span> |
+            <span style="color: #fbbf24;">P2: ${eco.prey}</span> |
+            <span style="color: #f87171;">P3: ${eco.predators}</span>
+        `;
+    } else {
+        detailPanel.innerText = "Hover over a nested 18.5 km tile to inspect local numbers...";
+    }
+}
 
 canvas.addEventListener('mousemove', e => {
     if (isDragging) {
@@ -111,6 +206,8 @@ canvas.addEventListener('mousemove', e => {
                 <strong>Ecology Pack:</strong> ${hex.pack_ecology}<br>
             `;
         }
+        // Handle micro cluster HUD overlay
+        handleCanvasMouseMove(e);
     }
 });
 
