@@ -1,4 +1,8 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import json
+import math
 import sqlite3
 import os
 from core_engine.codec import BIOME_MAPPINGS, DEFAULT_TAGS
@@ -18,16 +22,34 @@ def ingest_map(json_path, db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    cells = data.get("cells", [])
+    cells = data.get("pack", {}).get("cells", [])
+    if not cells:
+        cells = data.get("cells", [])
 
     for cell in cells:
         q = cell.get("q")
         r = cell.get("r")
+
+        # TRANSLATE CELL PIXELS TO HEX COORDINATES
+        if q is None or r is None:
+            p = cell.get("p")
+            if p and len(p) == 2:
+                x, y = p[0], p[1]
+                # Map standard FMG polygon canvas coordinates to a unified hex grid.
+                # Assuming generic mapping scale:
+                scale = 55.0  # Common FMG to hex scale factor
+                q = int((x * (2.0/3.0)) / scale)
+                r = int(((-x / 3.0) + (math.sqrt(3)/3.0) * y) / scale)
+            else:
+                continue
+
         if q is None or r is None:
             continue
 
+
         height = cell.get("height", 0)
-        biome_str = cell.get("biome", "").lower()
+        biome_val = cell.get("biome", "")
+        biome_str = str(biome_val).lower() if isinstance(biome_val, str) else str(biome_val)
 
         # Climate variables
         temp = cell.get("temp", 0.0)
@@ -98,4 +120,4 @@ def ingest_map(json_path, db_path):
     print("Map data normalized and fully populated to the world state database.")
 
 if __name__ == "__main__":
-    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../world_state.db")
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")

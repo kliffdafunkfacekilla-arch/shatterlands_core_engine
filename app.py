@@ -7,7 +7,7 @@ from core_engine.engine import GlobalEngine
 from core_engine.codec import unpack_micro_cluster
 
 app = Flask(__name__, static_folder='client_vtt/src', static_url_path='')
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "core_engine", "world_state.db")
 engine = GlobalEngine(DB_PATH)
 
 def get_db():
