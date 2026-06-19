@@ -160,30 +160,23 @@ def unpack_micro_cluster(global_q, global_r, pack_geo, pack_meso, pack_eco, micr
         micro_hexes[(q, r)] = hx
 
     if micro_data_json:
-        try:
-            data = json.loads(micro_data_json)
-        except:
-            data = []
-        if isinstance(data, dict):
-            data = data.get("hexes", [])
-        if isinstance(data, list):
-            for hex_data in data:
-                if not isinstance(hex_data, dict): continue
-                q = hex_data.get("q", 0)
-                r = hex_data.get("r", 0)
-                if (q, r) in micro_hexes:
-                    hx = micro_hexes[(q, r)]
-                    hx.p1 = hex_data.get("p1", 0)
-                    hx.p2 = hex_data.get("p2", 0)
-                    hx.p3 = hex_data.get("p3", 0)
-                    hx.res = hex_data.get("res", 0)
+        data = json.loads(micro_data_json)
+        for hex_data in data:
+            q = hex_data.get("q", 0)
+            r = hex_data.get("r", 0)
+            if (q, r) in micro_hexes:
+                hx = micro_hexes[(q, r)]
+                hx.p1 = hex_data.get("p1", 0)
+                hx.p2 = hex_data.get("p2", 0)
+                hx.p3 = hex_data.get("p3", 0)
+                hx.res = hex_data.get("res", 0)
 
-                    if "res_plant" in hex_data: hx.res_plant = hex_data["res_plant"]
-                    if "res_meat" in hex_data: hx.res_meat = hex_data["res_meat"]
-                    if "res_material" in hex_data: hx.res_material = hex_data["res_material"]
-                    if "res_building" in hex_data: hx.res_building = hex_data["res_building"]
-                    if "res_reagent" in hex_data: hx.res_reagent = hex_data["res_reagent"]
-                    if "res_special" in hex_data: hx.res_special = hex_data["res_special"]
+                if "res_plant" in hex_data: hx.res_plant = hex_data["res_plant"]
+                if "res_meat" in hex_data: hx.res_meat = hex_data["res_meat"]
+                if "res_material" in hex_data: hx.res_material = hex_data["res_material"]
+                if "res_building" in hex_data: hx.res_building = hex_data["res_building"]
+                if "res_reagent" in hex_data: hx.res_reagent = hex_data["res_reagent"]
+                if "res_special" in hex_data: hx.res_special = hex_data["res_special"]
     else:
         g_p1 = pack_eco & 0xFF
         g_p2 = (pack_eco >> 8) & 0xFF
