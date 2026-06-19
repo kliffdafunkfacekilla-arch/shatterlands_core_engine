@@ -3,56 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visual Client Interface VTT</title>
+    <title>Shatterlands Virtual Tabletop & Simulation Hub</title>
     <style>
-        body { margin: 0; padding: 0; overflow: hidden; background: #1e1e1e; font-family: sans-serif; user-select: none; }
-        canvas { display: block; cursor: crosshair; }
-        #ui-layer { position: absolute; top: 10px; left: 10px; color: white; pointer-events: none; }
+        :root { --bg-dark: #121214; --bg-panel: #202024; --accent: #04d361; --text: #e1e1e6; --border: #29292e; }
+        body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg-dark); color: var(--text); padding: 20px; }
+        .layout-grid { display: grid; grid-template-columns: 1fr 350px; gap: 20px; max-width: 1600px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; }
+        .control-bar { background: var(--bg-panel); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; border: 1px solid var(--border); }
+        button { background: var(--accent); color: #000; border: none; padding: 10px 18px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #00b34d; }
+        button.secondary { background: #323238; color: var(--text); border: 1px solid var(--border); }
+        button.secondary:hover { background: #40404a; }
+        #canvas-container { background: #1a1a1e; height: 650px; border-radius: 8px; border: 2px solid var(--border); position: relative; overflow: auto; display: flex; align-items: center; justify-content: center; }
+        #map-canvas { background: #151518; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .panel { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
+        .panel h3 { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: var(--accent); }
+        #log-stream { height: 350px; overflow-y: auto; font-family: monospace; font-size: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .log-entry { padding: 6px; background: #121214; border-left: 3px solid #4f4f56; border-radius: 0 4px 4px 0; }
+        .log-entry.Chaos { border-left-color: #9871f5; }
     </style>
 </head>
 <body>
-    <div id="ui-layer">
-        <h2>Shatterlands VTT</h2>
-        <div id="status">Waiting for AI Director payload...</div>
+    <header>
+        <div>
+            <h1 style="margin:0; font-size: 24px;">Shatterlands Simulation Grid</h1>
+            <div id="sim-time" style="color: #a8a8b3; margin-top: 5px;">Syncing time parameters...</div>
+        </div>
+        <div id="global-pop" style="font-size: 18px; font-weight: bold;">Population: --</div>
+    </header>
+
+    <div class="control-bar">
+        <button id="btn-subsurface" class="secondary">Toggle Sub-Surface Layer</button>
+        <button id="btn-tick">Advance Simulation Step</button>
     </div>
-    <canvas id="vttCanvas"></canvas>
+
+    <div class="layout-grid">
+        <div id="canvas-container">
+            <canvas id="map-canvas" width="1000" height="600"></canvas>
+        </div>
+        
+        <div class="sidebar">
+            <div class="panel">
+                <h3>Coordinate Inspector</h3>
+                <div id="inspector-output">Hover or click a map hex coordinates vector to parse real-time telemetry variables.</div>
+            </div>
+            <div class="panel">
+                <h3>Live Ledger Records</h3>
+                <div id="log-stream">Awaiting engine execution ticks...</div>
+            </div>
+        </div>
+    </div>
 
     <script src="canvas_adapter.js"></script>
-    <script>
-        // Initialize the canvas adapter
-        const canvas = document.getElementById('vttCanvas');
-        const adapter = new VTTCanvasAdapter(canvas);
-
-        // Example mock payload to test rendering (will be replaced by real AI Director data)
-        const mockPayload = {
-            "coordinate": {"q": 0, "r": 0},
-            "ambient_chaos_energy": 120,
-            "temperature": 60,
-            "moisture": 80,
-            "depth_layer": "Sub-Surface/Abyssal",
-            "is_underwater": true,
-            "ocean_attributes": {
-                "underwater_biome": "Abyssal Trench",
-                "active_current_index": 2
-            },
-            "active_storms": [
-                {
-                    "type": "Chaos Storm",
-                    "energy": 500,
-                    "moisture": 100,
-                    "vorticity": 80,
-                    "is_chaos": true,
-                    "chaos_domain": "Void"
-                }
-            ],
-            "dynamic_environmental_effects": [
-                "Reality distortion from Void domain. Magic is highly volatile."
-            ]
-        };
-
-        // Render the payload
-        adapter.renderPayload(mockPayload);
-        document.getElementById('status').innerText = 'Rendering active payload.';
-    </script>
 </body>
 </html>

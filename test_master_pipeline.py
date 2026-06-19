@@ -73,7 +73,7 @@ def test_master_pipeline():
     update_ledger()
 
     assert os.path.exists(LEDGER_PATH), "Chronicle ledger was not created."
-    with open(LEDGER_PATH, 'r') as f:
+    with open(LEDGER_PATH, 'r', encoding='utf-8') as f:
         content = f.read()
         assert len(content) > 0, "Chronicle ledger is empty."
 
