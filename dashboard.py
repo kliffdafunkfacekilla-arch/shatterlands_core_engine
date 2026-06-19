@@ -8,7 +8,7 @@ import math
 import plotly.graph_objects as go
 from core_engine.engine import GlobalEngine
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "core_engine", "world_state.db")
 
 st.set_page_config(page_title="Shatterlands Director", layout="wide")
 st.title("Shatterlands Global Director")
@@ -129,7 +129,7 @@ with col_center:
         margin=dict(l=0, r=0, t=0, b=0),
         xaxis=dict(visible=False, scaleanchor="y", scaleratio=1),
         yaxis=dict(visible=False),
-        dragmode='pan',
+        dragmode="pan", clickmode="event+select",
         height=700
     )
     
