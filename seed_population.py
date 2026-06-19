@@ -83,7 +83,7 @@ def generate_traits(stats):
 
 def seed_world_society(db_path=None):
     if db_path is None:
-        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "world_state.db")
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "core_engine", "world_state.db")
         
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
