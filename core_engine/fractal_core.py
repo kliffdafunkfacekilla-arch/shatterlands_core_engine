@@ -17,7 +17,7 @@ def process_cluster_fidelity(engine_tick, global_hex_id, conn):
 
     # --- ECOLOGY LOOP (Plant -> Prey -> Predator) ---
     for hx in micro_hexes.values():
-        cursor.execute("SELECT id FROM farms WHERE global_hex_id=? AND micro_q=? AND micro_r=?", (global_hex_id, hx.q, hx.r))
+        cursor.execute("SELECT id FROM buildings WHERE type='farm' AND settlement_id IN (SELECT id FROM settlements WHERE global_hex_id=? AND micro_q=? AND micro_r=?)", (global_hex_id, hx.q, hx.r))
         has_structure = cursor.fetchone()
 
         if has_structure:
@@ -55,8 +55,12 @@ def process_cluster_fidelity(engine_tick, global_hex_id, conn):
         working_pop = max(1, pop)
 
         def get_dist(hq, hr):
-            return (abs(hq - m_q) + abs(hr - m_r) + abs(-hq-hr - (-m_q-m_r))) // 2
+            # Explicitly handle None values as center-bias
+            q = m_q if m_q is not None else 0
+            r = m_r if m_r is not None else 0
+            return (abs(hq - q) + abs(hr - r) + abs(-hq-hr - (-q-r))) // 2
 
+        exp_ring = exp_ring if exp_ring is not None else 0
         reachable = [hx for hx in micro_hexes.values() if get_dist(hx.q, hx.r) <= level + 2 + exp_ring]
 
         # Gather Phase
@@ -72,11 +76,12 @@ def process_cluster_fidelity(engine_tick, global_hex_id, conn):
             food_stockpile -= assign
             if assign <= 0: break
 
-            cursor.execute("SELECT output_rate, maintenance_cost FROM farms WHERE global_hex_id=? AND micro_q=? AND micro_r=?", (global_hex_id, hx.q, hx.r))
+            cursor.execute("SELECT level FROM buildings WHERE type='farm' AND settlement_id=? LIMIT 1", (s_id,))
             farm = cursor.fetchone()
 
             if farm:
-                out_rate, maint = farm
+                out_rate = farm[0] * 5
+                maint = farm[0] * 2
                 # Heartland Alliance: Farm yield is tripled on Plains
                 if f_rule == "Heartland_Alliance" and hx.biome_id == 4:
                     out_rate *= 3.0
@@ -90,12 +95,16 @@ def process_cluster_fidelity(engine_tick, global_hex_id, conn):
 
             if not farm:
                 # Paragon dictates priorities!
-                cursor.execute("SELECT goal, stat_vita, stat_motus, stat_lex, stat_flux FROM paragons WHERE settlement_id=?", (s_id,))
+                import json
+                cursor.execute("SELECT motivation, stats_json FROM paragons WHERE settlement_id=?", (s_id,))
                 paragon = cursor.fetchone()
+
                 goal = paragon[0] if paragon else "Survive"
-                s_vita = paragon[1] if paragon else 1
-                s_motus = paragon[2] if paragon else 1
-                s_flux = paragon[4] if paragon else 1
+                stats = json.loads(paragon[1]) if paragon and paragon[1] else {}
+
+                s_vita = stats.get("vita", 1)
+                s_motus = stats.get("motus", 1)
+                s_flux = stats.get("flux", 1)
 
                 # Dynamic priority queue based on Paragon Personality
                 priorities = [("Predator", hx.p3), ("Prey", hx.p2), ("Plant", hx.p1)]

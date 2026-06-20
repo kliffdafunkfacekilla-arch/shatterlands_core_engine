@@ -81,11 +81,16 @@ def init_database(db_path=DB_PATH):
         name TEXT NOT NULL,
         settlement_level INTEGER DEFAULT 1,
         population INTEGER DEFAULT 50,
+        spark_born_population INTEGER DEFAULT 0,
         wealth REAL DEFAULT 100.0,
         security_points REAL DEFAULT 10.0,
         inventory_json TEXT,
         hidden_cultists INTEGER DEFAULT 0,
         magic_loadout TEXT DEFAULT '[]',
+        micro_q INTEGER NOT NULL DEFAULT 0,
+        micro_r INTEGER NOT NULL DEFAULT 0,
+        capital_id INTEGER,
+        expansion_ring INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY(faction_id) REFERENCES factions(id),
         FOREIGN KEY(global_hex_id) REFERENCES global_hexes(id)
     )""")
@@ -142,6 +147,8 @@ def init_database(db_path=DB_PATH):
         alignment TEXT,
         custom_speed INTEGER DEFAULT 1,
         ticks_since_move INTEGER DEFAULT 0,
+        micro_q INTEGER NOT NULL DEFAULT 0,
+        micro_r INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY(global_hex_id) REFERENCES global_hexes(id)
     )""")
 
@@ -152,7 +159,63 @@ def init_database(db_path=DB_PATH):
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tick INTEGER,
         category TEXT,
-        message TEXT
+        message TEXT,
+        global_q INTEGER,
+        global_r INTEGER
+    )""")
+
+    cursor.execute("DROP TABLE IF EXISTS crimes")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS crimes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        settlement_id INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        severity INTEGER DEFAULT 1,
+        FOREIGN KEY(settlement_id) REFERENCES settlements(id)
+    )""")
+
+    cursor.execute("DROP TABLE IF EXISTS chaos_agents")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS chaos_agents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        global_hex_id INTEGER NOT NULL,
+        type TEXT NOT NULL,
+        strength REAL DEFAULT 1.0,
+        micro_q INTEGER NOT NULL DEFAULT 0,
+        micro_r INTEGER NOT NULL DEFAULT 0,
+        is_active BOOLEAN DEFAULT 1,
+        FOREIGN KEY(global_hex_id) REFERENCES global_hexes(id)
+    )""")
+
+    cursor.execute("DROP TABLE IF EXISTS weather_systems")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS weather_systems (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT,
+        global_q INTEGER,
+        global_r INTEGER,
+        energy REAL,
+        moisture REAL,
+        vorticity REAL,
+        is_chaos BOOLEAN,
+        chaos_domain INTEGER
+    )""")
+
+    cursor.execute("DROP TABLE IF EXISTS simulation_clusters")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS simulation_clusters (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        global_q INTEGER NOT NULL,
+        global_r INTEGER NOT NULL,
+        micro_q INTEGER NOT NULL DEFAULT 0,
+        micro_r INTEGER NOT NULL DEFAULT 0,
+        expansion_ring INTEGER NOT NULL DEFAULT 0,
+        pack_ecology INTEGER DEFAULT 0,
+        settlement_type TEXT,
+        infrastructure_asset TEXT,
+        micro_data_json TEXT,
+        UNIQUE(global_q, global_r, micro_q, micro_r),
+        FOREIGN KEY(global_q, global_r) REFERENCES global_hexes(q, r)
     )""")
 
     conn.commit()
