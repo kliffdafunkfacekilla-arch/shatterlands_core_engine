@@ -835,7 +835,7 @@ class GlobalEngine:
     def process_paragons(self, cursor, conn, settlements):
         """Each paragon makes one decision per tick weighted by their faction's diplomacy."""
         cursor.execute("""
-            SELECT p.id, p.name, p.descriptor, p.settlement_id,
+            SELECT p.id, p.name, p.archetype as descriptor, p.settlement_id,
                    s.faction_id, s.name as s_name, s.wealth, s.security_points
             FROM paragons p
             JOIN settlements s ON p.settlement_id = s.id
